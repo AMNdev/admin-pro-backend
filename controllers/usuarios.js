@@ -8,11 +8,33 @@ const { generarJWT } = require('../helpers/jwt');
 // Obtener usuarios
 
 const getUsuarios = async (req, res) => {
-    const usuarios = await Usuario.find({}, 'nombre email role google');
+
+    const desde = +req.query.desde || 0;
+    // convierto string a number y si no hay query en la petición (NaN), valor 0.
+
+    // Esta parte la optimizo para que sea más rápida con Promise.all() 
+    // const usuarios = await Usuario
+    //     .find({}, 'nombre email role google')
+    //     .skip(desde)
+    //     .limit(5);
+    // // paginación con skip y limit
+    // const total = await Usuario.count();
+    // // obtengo numero total de usuarios
+
+    const [usuarios, total] = await Promise.all([
+        Usuario
+            .find({}, 'nombre email role google img')
+            .skip(desde)
+            .limit(5),
+        
+        Usuario.count()
+
+    ]);
 
     res.json({
         ok: true,
         msg: usuarios,
+        total
     }
     )
 
@@ -26,7 +48,7 @@ const crearUsuario = async (req, res = response) => {
     const { email, password } = req.body;
 
     try {
-        const existeEmail = await Usuario.findOne({email})
+        const existeEmail = await Usuario.findOne({ email })
         if (existeEmail) {
             return res.status(400).json({
                 ok: false,
@@ -53,7 +75,7 @@ const crearUsuario = async (req, res = response) => {
             token
         }
         )
-        
+
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -68,8 +90,8 @@ const crearUsuario = async (req, res = response) => {
 
 // Actualizar usuario
 
-const actualizarUsuario = async (req, res=response) => {
-    
+const actualizarUsuario = async (req, res = response) => {
+
     // TODO: Validar token y comprobar que el usuario es el correcto
 
     const uid = req.params.id;
@@ -83,10 +105,10 @@ const actualizarUsuario = async (req, res=response) => {
                 msg: 'No hay ningún usuario con el id proporcionado'
             });
         }
-        
+
         // Actualizaciones
         // const campos =req.body  -- optimizado
-        const {password , google, email, ...campos} = req.body;
+        const { password, google, email, ...campos } = req.body;
 
         if (usuarioDB.email !== email) {
             const existeEmail = await Usuario.findOne({ email })
@@ -106,14 +128,14 @@ const actualizarUsuario = async (req, res=response) => {
         // los borro de la info que acabo de obtener porque no son campos que quiera modificar
         // ya no es necesario porque desestructuro los campos arriba
 
-        const usuarioActualizado = await Usuario.findByIdAndUpdate(uid, campos, {new:true});
+        const usuarioActualizado = await Usuario.findByIdAndUpdate(uid, campos, { new: true });
 
 
         res.json({
             ok: true,
             usuario: usuarioActualizado
         })
-        
+
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -146,7 +168,7 @@ const borrarUsuario = async (req, res = response) => {
             ok: true,
             msg: 'Usuario eliminado definitivamente'
         })
-        
+
     } catch (error) {
         console.log(error);
         res.status(500).json({
