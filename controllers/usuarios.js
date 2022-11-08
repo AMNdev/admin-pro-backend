@@ -26,14 +26,14 @@ const getUsuarios = async (req, res) => {
             .find({}, 'nombre email role google img')
             .skip(desde)
             .limit(5),
-        
+
         Usuario.count()
 
     ]);
 
     res.json({
         ok: true,
-        msg: usuarios,
+        usuarios,
         total
     }
     )
@@ -121,7 +121,15 @@ const actualizarUsuario = async (req, res = response) => {
             }
         }
 
-        campos.email = email;
+        if (!usuarioDB.google) {
+
+            campos.email = email;
+        } else if (usuarioDB.email !== email) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Email de Google no puede ser modificado'
+            });
+        }
 
         // delete campos.password;
         // delete campos.google;

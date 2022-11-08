@@ -102,6 +102,7 @@ const googleSignIn = async (req, res = response) => {
 const renewToken = async (req, res=response) => {
 
     const uid = req.uid;
+    const usuario = await Usuario.findById( uid );
 
 
 
@@ -110,6 +111,7 @@ const renewToken = async (req, res=response) => {
 
     res.json({
         ok: true,
+        usuario,
         token
     })
 }
