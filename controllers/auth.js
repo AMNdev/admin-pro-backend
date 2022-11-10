@@ -3,6 +3,7 @@ const Usuario = require("../models/usuario");
 const bcrypt = require('bcryptjs');
 const { generarJWT } = require("../helpers/jwt");
 const { googleVerify } = require("../helpers/google-verify");
+const { getMenuFrontend } = require("../helpers/menu-frontend");
 
 
 const login = async (req, res = response) => {
@@ -39,7 +40,8 @@ const login = async (req, res = response) => {
 
         res.json({
             ok: true,
-            token
+            token,
+            menu: getMenuFrontend(usuarioDB.role)
         })
     } catch (error) {
         console.log(error);
@@ -47,7 +49,7 @@ const login = async (req, res = response) => {
             ok: false,
             msg: 'Contacte con el administrador'
         })
-    }
+    };
 }
 
 
@@ -83,7 +85,9 @@ const googleSignIn = async (req, res = response) => {
         res.json({
             ok: true,
             email, name, picture,
-            token
+            token,
+            menu: getMenuFrontend(usuario.role)
+
         })
 
     } catch (error) {
@@ -112,7 +116,8 @@ const renewToken = async (req, res=response) => {
     res.json({
         ok: true,
         usuario,
-        token
+        token,
+        menu: getMenuFrontend(usuario.role)
     })
 }
 
